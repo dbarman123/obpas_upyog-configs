@@ -100,33 +100,42 @@ ReportDefinitions:
 
     query: |
       SELECT 
-        bp.application_no,
-        bp.created_time as createdtime,
-        bp.application_date as normalappdate, 
-        to_char(To_timestamp(bp.application_date / 1000), 'DD/MM/YYYY') as applicationdate,
-        bp.edcr_number, 
-        landinfo.channel as applicationchannel, 
-        usr.name as name,
-        bp.application_type as applicationtype, 
-        land.occupancy_type,
-        bp.status, 
-        case when st.isterminatestate=true then null else userassignee.name end as currentowner, 
-        bp.planning_permit_no 
+       bp.application_no,
+      bp.created_time as createdtime,
+      bp.application_date as normalappdate, 
+      to_char(To_timestamp(bp.application_date / 1000), 'DD/MM/YYYY') as applicationdate,
+      bp.edcr_number, 
+      landinfo.channel as applicationchannel, 
+      usr.name as name,
+      bp.application_type as applicationtype, 
+      land.occupancy_type,
+      bp.status, 
+      case when st.isterminatestate=true then null else userassignee.name end as currentowner, 
+      bp.planning_permit_no 
       FROM ug_bpa_buildingplans bp 
-      INNER JOIN eg_wf_processinstance_v2 pi ON pi.businessid=bp.application_no 
       INNER JOIN (
-        SELECT businessid, max(createdtime) as maxtime 
-        FROM eg_wf_processinstance_v2 
-        GROUP BY businessid
-      ) wfg ON pi.businessid=wfg.businessid AND maxtime=pi.createdtime 
-      INNER JOIN eg_wf_state_v2 st ON pi.status=st.uuid 
+      SELECT DISTINCT ON (businessid) *
+      FROM eg_wf_processinstance_v2
+      ORDER BY businessid, createdtime DESC
+      ) pi ON pi.businessid = bp.application_no
+      INNER JOIN eg_wf_state_v2 st ON pi.status = st.uuid 
       INNER JOIN eg_user usr ON bp.created_by = usr.uuid  
-      INNER JOIN ug_land_unit land ON land.land_info_id = bp.land_id 
-      INNER JOIN ug_land_info landinfo ON land.land_info_id = landinfo.id 
-      INNER JOIN ug_land_address adr ON adr.land_info_id = landinfo.id 
-      INNER JOIN eg_user userassignee ON assigner = userassignee.uuid
-      WHERE 1=1
-
+      INNER JOIN (
+      SELECT DISTINCT ON (land_info_id) *
+      FROM ug_land_unit
+      ORDER BY land_info_id
+      ) land ON land.land_info_id = bp.land_id 
+      INNER JOIN ug_land_info landinfo 
+        ON land.land_info_id = landinfo.id 
+      INNER JOIN (
+      SELECT DISTINCT ON (land_info_id) *
+      FROM ug_land_address
+      ORDER BY land_info_id
+      ) adr ON adr.land_info_id = landinfo.id 
+      LEFT JOIN eg_user userassignee 
+        ON pi.assigner = userassignee.uuid
+        WHERE 1=1
+        
     orderby: ORDER BY bp.application_date DESC
 
 
