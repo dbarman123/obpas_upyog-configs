@@ -77,20 +77,6 @@ ReportDefinitions:
         showColumn: true
 
     searchParams:
-      - name: fromdate
-        label: reports.obps.fromdate
-        type: epoch
-        source: obps
-        isMandatory: false
-        searchClause: AND ($fromdate IS NULL OR bp.created_time >= ($fromdate)::bigint)
-
-      - name: todate
-        label: reports.obps.todate
-        type: epoch
-        source: obps
-        isMandatory: false
-        searchClause: AND ($todate IS NULL OR bp.created_time <= ($todate)::bigint)
-
       - name: applicationno
         label: reports.obps.applicationno
         type: string
@@ -263,6 +249,7 @@ ReportDefinitions:
 
   - reportName: newapplicationsdatewise
     summary: New application data date-wise
+    decryptionPathId: StateTradeLicenseCancelledRegistryReport
     version: 1.0.0
     moduleName: rainmaker-obps
     sourceColumns:
@@ -289,14 +276,17 @@ ReportDefinitions:
       - name: applicationtype
         label: Application Type
         type: string
+        isLocalisationRequired: true
 
       - name: occupancy_type
         label: Occupancy Type
         type: string
+        isLocalisationRequired: true
 
       - name: status
         label: Status
         type: string
+        isLocalisationRequired: true
 
       - name: planning_permit_no
         label: Planning Permit No
@@ -369,9 +359,11 @@ ReportDefinitions:
       - name: action
         label: Action
         type: string
+        isLocalisationRequired: true
       - name: wf_state
         label: Workflow State
         type: string
+        isLocalisationRequired: true
     searchParams:
       - name: application_no
         label: Application No
