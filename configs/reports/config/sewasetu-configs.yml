@@ -1,67 +1,259 @@
 ReportDefinitions:
-- reportName: sewasetu-workflow-history
-  summary: Sewa Setu Workflow History
-  version: 1.0.0
-  moduleName: rainmaker-obps
-  sourceColumns:
-    - name: application_no
-      label: Application No
-      type: string
-    - name: action_time
-      label: Action Time
-      type: string
-    - name: action
-      label: Action
-      type: string
-    - name: wf_state
-      label: Workflow State
-      type: string
-    - name: official_name
-      label: Official Name
-      type: string
-    - name: designation
-      label: Designation
-      type: string
-    - name: office_location
-      label: Office Location
-      type: string
-    - name: created_time
-      label: Created Time
-      type: number
-    - name: last_modified_time
-      label: Last Modified Time
-      type: number
-    - name: comment
-      label: Comment
-      type: string
-  searchParams:
-    - name: application_no
-      label: Application No
-      type: string
-      source: application_no
-      isMandatory: true
-      searchClause: AND pi.businessid = $application_no
-  query: |
-    SELECT
-      pi.businessid,
-      to_char(to_timestamp(pi.createdtime / 1000), 'DD-MM-YYYY HH24:MI:SS') AS action_time,
-      pi.action,
-      st.state AS wf_state,
-      COALESCE(usr.name, '') AS official_name,
-      COALESCE(
-        (SELECT string_agg(r.name, ', ')
-         FROM eg_userrole_v1 eur
-         JOIN eg_role r ON eur.role_code = r.code
-         WHERE eur.user_id = usr.id), ''
-      ) AS designation,
-      pi.tenantid AS office_location,
-      pi.createdtime AS created_time,
-      pi.lastmodifiedtime AS last_modified_time,
-      COALESCE(pi.comment, '') AS comment
-    FROM  eg_wf_processinstance_v2 pi
-    LEFT JOIN eg_wf_state_v2 st
-      ON pi.status = st.uuid
-    LEFT JOIN eg_user usr
-      ON pi.createdby = usr.uuid
-    WHERE 1=1
-  orderby: ORDER BY pi.createdtime DESC
+  - reportName: sewasetu-workflow-history
+    summary: Sewa Setu Workflow History
+    decryptionPathId: StateTradeLicenseCancelledRegistryReport
+    version: 1.0.0
+    moduleName: rainmaker-obps
+    sourceColumns:
+      - name: application_no
+        label: Application No
+        type: string
+      - name: action_time
+        label: Action Time
+        type: string
+      - name: action
+        label: Action
+        type: string
+      - name: wf_state
+        label: Workflow State
+        type: string
+      - name: name
+        label: Official Name
+        type: string
+      - name: designation
+        label: Designation
+        type: string
+      - name: office_location
+        label: Office Location
+        type: string
+      - name: created_time
+        label: Created Time
+        type: number
+      - name: last_modified_time
+        label: Last Modified Time
+        type: number
+      - name: comment
+        label: Comment
+        type: string
+    searchParams:
+      - name: application_no
+        label: Application No
+        type: string
+        source: application_no
+        isMandatory: true
+        searchClause: AND pi.businessid = $application_no
+    query: |
+      SELECT
+        pi.businessid,
+        to_char(to_timestamp(pi.createdtime / 1000), 'DD-MM-YYYY HH24:MI:SS') AS action_time,
+        pi.action,
+        st.state AS wf_state,
+        COALESCE(usr.name, '') AS name,
+        COALESCE(
+          (SELECT string_agg(DISTINCT eur.role_code, ', ')
+           FROM eg_userrole_v1 eur
+           WHERE eur.user_id = usr.id), ''
+        ) AS designation,
+        pi.tenantid AS office_location,
+        pi.createdtime AS created_time,
+        pi.lastmodifiedtime AS last_modified_time,
+        COALESCE(pi.comment, '') AS comment
+      FROM eg_wf_processinstance_v2 pi
+      LEFT JOIN eg_wf_state_v2 st
+        ON pi.status = st.uuid
+      LEFT JOIN eg_user usr
+        ON pi.createdby = usr.uuid
+      WHERE 1=1
+        AND pi.createdtime >= (
+          SELECT COALESCE(MIN(pi2.createdtime), 0)
+          FROM eg_wf_processinstance_v2 pi2
+          WHERE pi2.businessid = pi.businessid
+            AND pi2.status IN (
+              SELECT uuid FROM EG_WF_STATE_V2
+              WHERE applicationstatus IN ('PENDING_DA_ENGINEER', 'PENDING_GMDA_ENGINEER')
+            )
+        )
+    orderby: ORDER BY pi.createdtime DESC
+
+  - reportName: sewasetu-application-numbers-by-date
+    summary: Sewa Setu Application Numbers by Submission Date
+    version: 1.0.0
+    moduleName: rainmaker-obps
+    sourceColumns:
+      - name: businessid
+        label: Business ID
+        type: string
+    searchParams:
+      - name: submission_date
+        label: Submission Date
+        type: string
+        source: submission_date
+        isMandatory: true
+        searchClause: AND to_timestamp(pi.createdtime / 1000)::date = to_date($submission_date, 'DD-MM-YYYY')
+    query: |
+      SELECT DISTINCT pi.businessid
+      FROM eg_wf_processinstance_v2 pi
+      WHERE 1=1
+        AND pi.modulename = 'bpa-services'
+        AND pi.status IN (
+          SELECT uuid FROM EG_WF_STATE_V2 
+          WHERE applicationstatus IN ('PENDING_DA_ENGINEER', 'PENDING_GMDA_ENGINEER')
+        )
+    orderby: ORDER BY businessid ASC
+
+  - reportName: sewasetu-initiated-data
+    summary: Sewa Setu Initiated Data
+    decryptionPathId: StateTradeLicenseCancelledRegistryReport
+    version: 1.0.0
+    moduleName: rainmaker-obps
+    sourceColumns:
+      - name: application_no
+        label: Application No
+        type: string
+      - name: department_name
+        label: Department Name
+        type: string
+      - name: service_name
+        label: Service Name
+        type: string
+      - name: name
+        label: Name
+        type: string
+      - name: submission_location
+        label: Submission Location
+        type: string
+      - name: district
+        label: District
+        type: string
+      - name: circle
+        label: Circle
+        type: string
+      - name: submission_date
+        label: Submission Date
+        type: string
+      - name: submission_mode
+        label: Submission Mode
+        type: string
+      - name: payment_mode
+        label: Payment Mode
+        type: string
+      - name: reference_no
+        label: Reference No
+        type: string
+      - name: payment_date
+        label: Payment Date
+        type: string
+      - name: amount
+        label: Amount
+        type: string
+      - name: payment_status
+        label: Payment Status
+        type: string
+      - name: appl_status
+        label: Application Status
+        type: string
+    searchParams:
+      - name: application_numbers
+        label: Application Numbers
+        type: stringarray
+        source: application_numbers
+        isMandatory: true
+        searchClause: ""
+    query: |
+      SELECT
+        bp.application_no,
+        bp.tenant_id AS submission_location,
+        COALESCE(usr.name, '') AS name,
+        area.district AS district,
+        area.planning_area AS circle,
+        to_char(to_timestamp(bp.application_date / 1000), 'DD-MM-YYYY HH24:MI:SS') AS submission_date,
+        CASE
+          WHEN MAX(p.transactiondate) IS NOT NULL
+            THEN to_char(to_timestamp(MAX(p.transactiondate) / 1000), 'DD-MM-YYYY HH24:MI:SS')
+          ELSE ''
+        END AS payment_date,
+        COALESCE(CAST(SUM(bd.totalamount) AS text), '') AS amount,
+        COALESCE(MAX(p.paymentstatus), '') AS payment_status,
+        bp.status AS appl_status
+      FROM ug_bpa_buildingplans bp
+      LEFT JOIN eg_user usr ON bp.account_id = usr.uuid
+      LEFT JOIN ug_bpa_area_mapping_detail area ON area.buildingplan_id = bp.id
+      LEFT JOIN egbs_billdetail_v1 bd ON bd.consumercode = bp.application_no AND bd.tenantid = bp.tenant_id
+      LEFT JOIN egbs_bill_v1 bill ON bill.id = bd.billid AND bill.tenantid = bd.tenantid
+      LEFT JOIN egcl_paymentdetail pd ON pd.billid = bill.id
+      LEFT JOIN egcl_payment p ON p.id = pd.paymentid AND p.tenantid = bill.tenantid
+      WHERE 1=1
+        AND bp.application_no = ANY(string_to_array($application_numbers, ','))
+      GROUP BY
+        bp.application_no,
+        bp.tenant_id,
+        usr.name,
+        bp.application_date,
+        area.district,
+        area.planning_area,
+        bp.status
+    orderby: ORDER BY bp.application_date ASC
+
+  - reportName: sewasetu-attribute-data
+    summary: Sewa Setu Attribute Data
+    decryptionPathId: StateTradeLicenseCancelledRegistryReport
+    version: 1.0.0
+    moduleName: rainmaker-obps
+    sourceColumns:
+      - name: application_no
+        label: Application No
+        type: string
+      - name: user_type
+        label: User Type
+        type: string
+      - name: applied_user_type
+        label: Applied User Type
+        type: string
+      - name: name
+        label: Applicant Name
+        type: string
+      - name: applicant_gender
+        label: Applicant Gender
+        type: string
+      - name: caste
+        label: Caste
+        type: string
+      - name: date_of_birth
+        label: Date of Birth
+        type: string
+      - name: email
+        label: Email
+        type: string
+    searchParams:
+      - name: application_numbers
+        label: Application Numbers
+        type: stringarray
+        source: application_numbers
+        isMandatory: true
+        searchClause: AND bp.application_no = ANY(string_to_array($application_numbers, ','))
+    query: |
+      SELECT
+        bp.application_no,
+        COALESCE(usr.type, '') AS user_type,
+        COALESCE(usr.type, '') AS applied_user_type,
+        COALESCE(usr.name, '') AS name,
+        CASE 
+          WHEN usr.gender = 0 THEN 'Male'
+          WHEN usr.gender = 1 THEN 'Female'
+          WHEN usr.gender = 2 THEN 'Male'
+          WHEN usr.gender = 3 THEN 'Others'
+          WHEN usr.gender = 4 THEN 'Transgender'
+          ELSE 'Male'
+        END AS applicant_gender,
+        '' AS caste,
+        CASE 
+          WHEN usr.dob IS NOT NULL 
+          THEN to_char(usr.dob, 'DD-MM-YYYY')
+          ELSE ''
+        END AS date_of_birth,
+        COALESCE(usr.emailid, '') AS email
+      FROM ug_bpa_buildingplans bp
+      LEFT JOIN eg_user usr
+        ON bp.account_id = usr.uuid
+      WHERE 1=1
+    orderby: ORDER BY bp.application_no ASC
