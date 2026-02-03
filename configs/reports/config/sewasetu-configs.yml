@@ -3,7 +3,7 @@ ReportDefinitions:
     summary: Sewa Setu Workflow History
     decryptionPathId: StateTradeLicenseCancelledRegistryReport
     version: 1.0.0
-    moduleName: rainmaker-obps
+    moduleName: rainmaker-sewasetu
     sourceColumns:
       - name: application_no
         label: Application No
@@ -78,7 +78,7 @@ ReportDefinitions:
   - reportName: sewasetu-application-numbers-by-date
     summary: Sewa Setu Application Numbers by Submission Date
     version: 1.0.0
-    moduleName: rainmaker-obps
+    moduleName: rainmaker-sewasetu
     sourceColumns:
       - name: businessid
         label: Business ID
@@ -105,7 +105,7 @@ ReportDefinitions:
     summary: Sewa Setu Initiated Data
     decryptionPathId: StateTradeLicenseCancelledRegistryReport
     version: 1.0.0
-    moduleName: rainmaker-obps
+    moduleName: rainmaker-sewasetu
     sourceColumns:
       - name: application_no
         label: Application No
@@ -198,7 +198,7 @@ ReportDefinitions:
     summary: Sewa Setu Attribute Data
     decryptionPathId: StateTradeLicenseCancelledRegistryReport
     version: 1.0.0
-    moduleName: rainmaker-obps
+    moduleName: rainmaker-sewasetu
     sourceColumns:
       - name: application_no
         label: Application No
