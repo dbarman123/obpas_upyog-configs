@@ -64,12 +64,6 @@ ReportDefinitions:
         showColumn: true
         isLocalisationRequired: true
 
-      - name: currentowner
-        label: reports.obps.currentowner
-        type: string
-        source: obps
-        showColumn: false
-
       - name: planning_permit_no
         label: reports.obps.planningpermitno
         type: string
@@ -96,7 +90,6 @@ ReportDefinitions:
       bp.application_type as applicationtype, 
       land.occupancy_type,
       bp.status, 
-      case when st.isterminatestate=true then null else userassignee.name end as currentowner, 
       bp.planning_permit_no 
       FROM ug_bpa_buildingplans bp 
       INNER JOIN (
