@@ -11,13 +11,7 @@ ReportDefinitions:
         source: obps
         showColumn: true
         total: false
-
-      - name: normalappdate
-        label: reports.obps.normalappdate
-        type: epoch
-        source: obps
-        showColumn: false
-
+        
       - name: applicationdate
         label: reports.obps.applicationdate
         type: string
@@ -81,8 +75,7 @@ ReportDefinitions:
     query: |
       SELECT 
        bp.application_no,
-      bp.created_time as createdtime,
-      bp.application_date as normalappdate, 
+      bp.created_time as createdtime, 
       to_char(To_timestamp(bp.application_date / 1000), 'DD/MM/YYYY') as applicationdate,
       bp.edcr_number, 
       landinfo.channel as applicationchannel, 
