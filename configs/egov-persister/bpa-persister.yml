@@ -19,9 +19,9 @@ serviceMaps:
              occupancy_certificate_no, occupancy_certificate_date, oc_filestore_id,
              pp_fee_receipt_filestore_id, bp_fee_receipt_filestore_id,
              property_no, property_details, property_vendor, signed_pp_filestore_id, signed_bp_filestore_id, signed_oc_filestore_id,
-             signed_dxf_filestore_id)
+             signed_dxf_filestore_id,geo_tagged_photo_filestore_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::JSONB,
-             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::JSONB, ?, ?, ?, ?, ?);
+             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::JSONB, ?, ?, ?, ?, ?, ?);
           basePath: BPA
           jsonMaps:
             - jsonPath: $.BPA.id
@@ -64,6 +64,7 @@ serviceMaps:
             - jsonPath: $.BPA.signedBpFileStoreId
             - jsonPath: $.BPA.signedOcFileStoreId
             - jsonPath: $.BPA.signedDxfFileStoreId
+            - jsonPath: $.BPA.geoTaggedPhotoFilestoreId
 
         # Insert documents associated with BPA
         - query: >
@@ -204,7 +205,9 @@ serviceMaps:
               signed_pp_filestore_id = ?,
               signed_bp_filestore_id = ?,
               signed_oc_filestore_id = ?,
-              signed_dxf_filestore_id = ?
+              signed_dxf_filestore_id = ?,
+              geo_tagged_photo_filestore_id = ?
+
             WHERE id = ?;
           basePath: BPA
           jsonMaps:
@@ -233,6 +236,7 @@ serviceMaps:
             - jsonPath: $.BPA.signedBpFileStoreId
             - jsonPath: $.BPA.signedOcFileStoreId
             - jsonPath: $.BPA.signedDxfFileStoreId
+            - jsonPath: $.BPA.geoTaggedPhotoFilestoreId
             - jsonPath: $.BPA.id
 
     - version: 1.0
@@ -305,7 +309,8 @@ serviceMaps:
               signed_pp_filestore_id = ?,
               signed_bp_filestore_id = ?,
               signed_oc_filestore_id = ?,
-              signed_dxf_filestore_id = ?
+              signed_dxf_filestore_id = ?,
+              geo_tagged_photo_filestore_id = ?
             WHERE id = ?;
           basePath: BPA
           jsonMaps:
@@ -346,6 +351,7 @@ serviceMaps:
             - jsonPath: $.BPA.signedBpFileStoreId
             - jsonPath: $.BPA.signedOcFileStoreId
             - jsonPath: $.BPA.signedDxfFileStoreId
+            - jsonPath: $.BPA.geoTaggedPhotoFilestoreId
             - jsonPath: $.BPA.id  # WHERE condition
 
         # UPDATE Area Mapping table (using UPDATE command)
